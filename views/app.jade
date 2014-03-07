@@ -3,15 +3,29 @@ extend layout
 block content
 
   h2 Silo: #{app.name}
-  
+
   i URL: #{app.web_url}
   
-  | &nbsp; | &nbsp;
- 
-  h4 Addons
+  hr
+  .row
+    .span4
+      h4 Add-ons
+      ul
+        each addon in addons
+          li #{addon.name} - #{addon.plan.name}
 
-  ul
-    each addon in addons
-      li #{addon.name} - #{addon.plan.name}
+    .span4
+      h4 Releases
+
+      ul
+        each release in releases
+          li #{release.version} - #{release.description}
+
+    .span4
+      h4 Domains
+      ul
+        each domain in domains
+          li 
+            a(href="http://#{domain.hostname}", target="_blank") #{domain.hostname}
 
   a(href="/apps") List of Silos

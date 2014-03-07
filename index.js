@@ -43,6 +43,12 @@ app.post("/create", function(req, res) {
         heroku.apps(opts.name).addons().create({ plan: "mongohq:sandbox" }, function(err, addon) {
           callback(null, addon)
         })
+      },
+      slug: function(callback) {
+        var slugid = "e5426db9-3d84-424e-a064-6555561fefc1";
+        heroku.apps(opts.name).releases().create({ slug: slugid }, function(err, release) {
+          callback(null, release)
+        })
       }
     }, function(err, results) {
 
@@ -54,22 +60,41 @@ app.post("/create", function(req, res) {
 app.get("/app/:name", function(req, res) {
 
   var app = heroku.apps(req.params.name)
-
   app.info(function (err, app) {
   	if (err)
   	  return res.redirect("/app?message=No-App-Found")
 
     async.parallel({
       addons: function(callback) {
-	    heroku.apps(app.name).addons().list(function(err, addons) {
-	      callback(null, addons)
-	    })
+  	    heroku.apps(app.name).addons().list(function(err, addons) {
+  	      callback(null, addons)
+  	    })
+      },
+      domains: function(callback) {
+        heroku.apps(app.name).domains().list(function(err, domains) {
+          callback(null, domains)
+        })
+      },
+      releases: function(callback) {
+        heroku.apps(app.name).releases().list(function(err, releases) {
+          callback(null, releases)
+        })
       }
     }, function(err, results) {
-      // TODO: Handle Errors.
-	  res.render("app", { app: app, addons: results.addons })
-    })
+      if (err) {
+        console.log('Error in App')
+        return res.send('Error in App Get')
+      }
 
+      var opts = {
+       app:      app, 
+       domains:  results.domains, 
+       releases: results.releases, 
+       addons:   results.addons 
+      }
+
+	    res.render("app", opts)
+    })  
   })
 
 })
