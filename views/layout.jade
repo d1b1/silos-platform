@@ -1,0 +1,41 @@
+doctype html
+html(lang='en')
+  head
+    title 
+      | Silos Platform
+    meta(name='charset', content='UTF-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+
+    link(rel='stylesheet', href='/assets/css/style.css')
+
+    style.
+      body { 
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+
+    script(src='/assets/js/javascript.js')
+
+    block header
+      
+  body
+    .navbar.navbar-inverse.navbar-fixed-top
+      .navbar-inner
+        .container
+          button(class='btn btn-navbar', data-toggle='collapse', data-target='.nav-collapse')
+            span.icon-bar
+            span.icon-bar
+            span.icon-bar
+          a(class='brand hiddenh-phone', href='/') Silos
+
+    div(class="container", style="min-height: 600px;")
+
+      block content
+
+    footer.container
+      hr
+      p 
+        | &copy Whatever
+
+ 
+block footer

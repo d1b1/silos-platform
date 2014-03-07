@@ -1,0 +1,20 @@
+/*!
+ * Custom.css 
+ */
+
+.form-signin-modal .form-signin-heading,
+.form-signin-modal .checkbox {
+  margin-bottom: 10px;
+}
+.form-signin-modal input[type="text"],
+.form-signin-modal input[type="password"] {
+  font-size: 16px;
+  height: auto;
+  margin-bottom: 15px;
+  padding: 7px 9px;
+}
+
+.modallogin {
+  width: 300px;
+  margin-left: -180px;
+}

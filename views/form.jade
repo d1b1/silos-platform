@@ -1,0 +1,36 @@
+extend layout
+
+block content
+
+  h2 EDIT: #{blog.title}
+ 
+  form.form-horizontal(method="post", action="/post/#{blog._id}")
+
+    input(type="hidden", name="_id", value="#{blog._id}",)
+
+    .control-group
+      label.control-label(for="title") Title
+      .controls
+         input.span7(type="text", name="title", value="#{blog.title}", placeholder="Title")
+
+    .control-group
+      label.control-label(for="author") Author
+      .controls
+         input.span7(type="text", name="author", value="#{blog.author}", placeholder="Author")
+
+    .control-group
+      label.control-label(for="body") Body
+      .controls
+         textarea.span7(type="text", name="body", placeholder="Enter Body...") #{blog.body}
+
+    .control-group
+      .controls
+         button.btn.btn-primary(type="submit") Save
+
+    .control-group
+      label.control-label(for="json") Raw JSON
+      .controls
+        textarea.span7(type="text", name="json") !{JSON.stringify(blog, true, " ")}
+
+
+  a(href="/") View All
