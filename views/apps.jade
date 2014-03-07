@@ -1,0 +1,14 @@
+extend layout
+
+block content
+
+  h2 List of Silo Apps
+
+  each app in apps
+    h3 #{app.name}
+    b URL: #{app.web_url}
+    br
+    a(href="#{app.web_url}", target="_blank") Visit App
+    | &nbsp; | &nbsp;
+    a(href="/app/#{app.name}", target="_blank") Details
+

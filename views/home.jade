@@ -3,14 +3,17 @@ extend layout
 block content
 
   .hero-unit
-    h1 Silos
+    h1 Get a Silo?
     p Get started now. Choose a name and build your content namespace.
-    form.form-search
+    form.form-search(action="/create", method="post")
       .control-group
         .controls
-          input(type="text", class="span4 input-xxlarge", placeholder="Enter a content name...") 
-          | &nbsp;
-          button.btn.btn-primary(type="submit") Get Started
+          .input-append
+            input(type="text", name="appname", class="span3 input-xxlarge", placeholder="Enter a content name...") 
+            span.add-on(style="text-align: left; width: 150px;") 
+              b .silos.io
+
+        button.btn.btn-primary.btn-large(type="submit") Get Started >>  
 
   .row
     .span4
@@ -28,6 +31,8 @@ block content
         and slice your data free. Use our 
         content store, API and pluggable 
         management and display tools.
+
+      a(href="/apps") List Silos >>
 
     .span4
       h4 API First

@@ -4,7 +4,9 @@ var Heroku = require('heroku-client'),
 var express = require('express');
 var request = require('request');
 var argv    = require('optimist').argv;
-var assets = require('./config/assets')
+var assets  = require('./config/assets');
+var async   = require('async');
+var _       = require('underscore');
 
 var port = argv.port || process.env.PORT || 5000;
 var app = express()
@@ -18,8 +20,75 @@ app.use(express.urlencoded())
 app.use(express.methodOverride())
 
 app.get('/', function(req, res) {
+  res.render('home')
+})
 
-   res.render('home')
+app.post('/create', function(req, res) {
+
+  if (req.body.appname == '') 
+  	return res.redirect('/')
+
+  var opts = { name: 'silo-beta-' + req.body.appname }
+
+  heroku.post('/apps', opts, function (err, app) {
+
+    if (err) {
+      console.log(err)
+      return res.redirect('/?Error=Unable to create App')
+    }
+
+    async.parallel({
+      domain: function(callback) {
+        heroku.apps(opts.name).domains().create({ hostname: opts.name + '.roadmaps.io' }, function(err, domain) {
+          callback(null, domain)
+        })
+      },
+      mongo: function(callback) {
+        heroku.apps(opts.name).addons().create({ plan: 'mongohq:sandbox' }, function(err, addon) {
+          callback(null, addon)
+        })
+      }
+    }, function(err, results) {
+
+      res.redirect('/app/' + app.name)
+    })
+  })
+})
+
+app.get('/app/:name', function(req, res) {
+
+  var app = heroku.apps(req.params.name);
+
+  app.info(function (err, app) {
+  	if (err) {
+  		return res.redirect('/app?message=No-App-Found')
+  	}
+
+    async.parallel({
+      addons: function(callback) {
+	    heroku.apps(app.name).addons().list(function(err, addons) {
+	      callback(null, addons)
+	    });
+      }
+    }, function(err, results) {
+
+	  res.render('app', { app: app, addons: results.addons })
+    })
+
+  });
+
+})
+
+
+app.get('/apps', function(req, res) {
+  heroku.apps().list(function (err, apps) {
+
+  	apps = _.filter(apps, function(app) {
+      return app.name.substring(0, 9) == 'silo-beta'
+  	})
+
+	res.render('apps', { apps: apps })
+  });
 })
 
 app.use(app.router);
