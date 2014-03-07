@@ -1,0 +1,4 @@
+silos-platform
+==============
+
+Silos Platform.
