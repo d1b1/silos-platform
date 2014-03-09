@@ -27,35 +27,95 @@ app.post("/create", function(req, res) {
   if (req.body.appname == "") 
   	return res.redirect("/")
 
-  var opts = { name: "silo-beta-" + req.body.appname }
+  var opts = { 
+    name: "silo-beta-" + req.body.appname.split(" ").join("-").toLowerCase() 
+  }
 
-  heroku.post("/apps", opts, function (err, app) {
-    if (err)
-      return res.redirect("/?Error=Unable to create App.")
+  checkAppNameIsFree(opts.name, function(err, appInfo) {
+    if (err) {
+      return res.send('Error creating the new APP.')
+    }
 
-    async.parallel({
-      domain: function(callback) {
-        heroku.apps(opts.name).domains().create({ hostname: opts.name + ".roadmaps.io" }, function(err, domain) {
-          callback(null, domain)
-        })
-      },
-      mongo: function(callback) {
-        heroku.apps(opts.name).addons().create({ plan: "mongohq:sandbox" }, function(err, addon) {
-          callback(null, addon)
-        })
-      },
-      slug: function(callback) {
-        var slugid = "e5426db9-3d84-424e-a064-6555561fefc1";
-        heroku.apps(opts.name).releases().create({ slug: slugid }, function(err, release) {
-          callback(null, release)
-        })
-      }
-    }, function(err, results) {
+    if (appInfo)
+      return res.send('App Name already used.')
 
-      res.redirect("/app/" + app.name)
+    heroku.post("/apps", opts, function (err, app) {
+      if (err)
+        return res.redirect("/?Error=Unable to create App.")
+
+      async.parallel({
+        domain: function(callback) {
+          heroku.apps(opts.name).domains().create({ hostname: opts.name + ".roadmaps.io" }, function(err, domain) {
+            callback(err, domain)
+          })
+        },
+        mongo: function(callback) {
+          heroku.apps(opts.name).addons().create({ plan: "mongohq:sandbox" }, function(err, mongo) {
+            callback(err, mongo)
+          })
+        },
+        redis: function(callback) {
+          heroku.apps(opts.name).addons().create({ plan: "rediscloud:25" }, function(err, redis) {
+            callback(err, redis)
+          })
+        },
+        slug: function(callback) {
+
+          // Name of the active template
+          var tmplAppName = "tosheroon";
+
+          // Get the most recent slug for the template app.
+          getSlugInfo(tmplAppName, function(err, slugObj) {
+            heroku.apps(opts.name).releases().create({ slug: slugObj.slug.id }, function(err, release) {
+              callback(null, release)
+            })
+          })
+
+        }
+      }, function(err, results) {
+
+        res.redirect("/app/" + app.name)
+      })
     })
   })
 })
+
+function checkAppNameIsFree(appName, cb) {
+
+  var app = heroku.apps(appName)
+  app.info(function (err, app) {
+    if (err) {
+      if (err.statusCode == 404) {
+        return cb(null, null)
+      }
+    }
+
+    if (err)
+      return cb(err)
+
+    if (!app) 
+      return cb(null, null)
+
+    cb(null, app)
+  })
+
+}
+
+/*
+ * Gets the slug in of the most recent from the template
+ * app. There can be more then one app which the user can
+ * select.
+ *
+ */
+
+function getSlugInfo(tmplAppName, cb) {
+  heroku.apps(tmplAppName).releases().list(function(err, releases) {
+    releases = _.filter(releases, function(slug) { return slug.slug != null; })
+    releases = _.sortBy(releases, function(o) { return -o.version; })
+
+    cb(null, _.first(releases))
+  })
+}
 
 app.get("/app/:name", function(req, res) {
 
@@ -82,7 +142,6 @@ app.get("/app/:name", function(req, res) {
       }
     }, function(err, results) {
       if (err) {
-        console.log('Error in App')
         return res.send('Error in App Get')
       }
 
@@ -106,7 +165,7 @@ app.get("/apps", function(req, res) {
       return app.name.substring(0, 9) == "silo-beta"
   	})
 
-	res.render("apps", { apps: apps })
+	  res.render("apps", { apps: apps })
   })
 })
 
